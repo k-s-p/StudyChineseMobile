@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class WordDetailPage extends StatefulWidget {
   final String pinyin;
@@ -12,6 +14,8 @@ class WordDetailPage extends StatefulWidget {
 }
 
 class _WordDetailPageState extends State<WordDetailPage> {
+  // バリデーションのキー
+  final _formkey = GlobalKey<FormState>();
   List<String> sentences = ["テスト例文１", "テスト例文2"];
 
   List<Container> makeWordColumnList(String word, String pinyin) {
@@ -21,13 +25,14 @@ class _WordDetailPageState extends State<WordDetailPage> {
     for (int i = 0; i < pinyinList.length; i++) {
       var wordColumn = Container(
         padding: const EdgeInsets.only(left: 1.5),
-        child: Column(children: [
+        child: Column(
+          children: [
           Text(
             pinyinList[i],
-            style: const TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 25),
           ),
           Text(kanjiList[i],
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold))
+              style: const TextStyle(fontSize: 50, fontWeight: FontWeight.bold, height: 1.0))
         ]),
       );
       wordColumnList.add(wordColumn);
@@ -44,17 +49,57 @@ class _WordDetailPageState extends State<WordDetailPage> {
       body: Column(
         children: <Widget>[
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                iconSize: 40,
+                icon: Icon(Icons.arrow_back_ios),
+                onPressed: () {
+                  // 前の単語に移動
+                },
+              ),
+              IconButton(
+                iconSize: 40,
+                icon: Icon(Icons.arrow_forward_ios),
+                onPressed: () {
+                  // 次の単語に移動
+                },
+              )
+            ],
+          ),
+          // 単語
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: makeWordColumnList(widget.word, widget.pinyin),
           ),
-          Text('意味: ${widget.meaning}'),
-          Expanded(child: ListView.builder(
+          // 意味
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            child: Text('意味: ${widget.meaning}'),
+          ),
+          // 例文
+          Expanded(
+            child: ListView.builder(
             itemCount: sentences.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(sentences[index]),
+                title: TextFormField(
+                  initialValue: sentences[index],
+                  decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.only(left: 5)),
+                  onChanged: (value) {
+                    setState((){
+                      sentences[index] = value;
+                    });
+                  },
+                  validator: (value) {
+                    if(value == null || !value.contains(widget.word)){
+                      return '例文には単語を含む必要があります';
+                    }
+                    return null;
+                  },
+                  ),
                 trailing: IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () {
                     setState(() {
                       sentences.removeAt(index);
@@ -67,7 +112,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         onPressed: () {
           setState(() {
             sentences.add("");
