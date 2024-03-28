@@ -1,21 +1,18 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class WordDetailPage extends StatefulWidget {
   final String pinyin;
   final String word;
   final String meaning;
 
-  WordDetailPage({required this.pinyin, required this.word, required this.meaning});
+  WordDetailPage(
+      {required this.pinyin, required this.word, required this.meaning});
 
   @override
   _WordDetailPageState createState() => _WordDetailPageState();
 }
 
 class _WordDetailPageState extends State<WordDetailPage> {
-  // バリデーションのキー
-  final _formkey = GlobalKey<FormState>();
   List<String> sentences = ["テスト例文１", "テスト例文2"];
 
   List<Container> makeWordColumnList(String word, String pinyin) {
@@ -25,14 +22,14 @@ class _WordDetailPageState extends State<WordDetailPage> {
     for (int i = 0; i < pinyinList.length; i++) {
       var wordColumn = Container(
         padding: const EdgeInsets.only(left: 1.5),
-        child: Column(
-          children: [
+        child: Column(children: [
           Text(
             pinyinList[i],
             style: const TextStyle(fontSize: 25),
           ),
           Text(kanjiList[i],
-              style: const TextStyle(fontSize: 50, fontWeight: FontWeight.bold, height: 1.0))
+              style: const TextStyle(
+                  fontSize: 50, fontWeight: FontWeight.bold, height: 1.0))
         ]),
       );
       wordColumnList.add(wordColumn);
@@ -85,19 +82,15 @@ class _WordDetailPageState extends State<WordDetailPage> {
               return ListTile(
                 title: TextFormField(
                   initialValue: sentences[index],
-                  decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.only(left: 5)),
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.only(left: 5)),
                   onChanged: (value) {
-                    setState((){
+                    setState(() {
                       sentences[index] = value;
                     });
                   },
-                  validator: (value) {
-                    if(value == null || !value.contains(widget.word)){
-                      return '例文には単語を含む必要があります';
-                    }
-                    return null;
-                  },
-                  ),
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {
@@ -118,6 +111,15 @@ class _WordDetailPageState extends State<WordDetailPage> {
             sentences.add("");
           });
         },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: TextButton(
+          child: const Text("例文保存"),
+          onPressed: () {
+            // DBに保存する
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("例文を保存しました"), duration: Duration(seconds: 2),));
+          },
+        ),
       ),
     );
   }
