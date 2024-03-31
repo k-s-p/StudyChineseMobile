@@ -88,9 +88,7 @@ class WordListPage extends StatelessWidget {
                       // タップで詳細画面へ遷移
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: ((context) => WordDetailPage(
-                              pinyin: wordData.pinyin,
-                              word: wordData.word,
-                              meaning: wordData.meaning))));
+                              id: wordData.id,))));
                     },
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.start,

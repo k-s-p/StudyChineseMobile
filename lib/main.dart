@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:study_chinese/pages/main_page.dart';
+import 'package:study_chinese/utils/database_util.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // 初期データの作成を行う
+  final db = await DataBaseUtil().initializeDatabase();
   runApp(const MainApp());
 }
 
