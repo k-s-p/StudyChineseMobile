@@ -14,20 +14,29 @@ class DataBaseUtil {
     final database =
         openDatabase(join(await getDatabasesPath(), 'study_chinese.db'),
             onCreate: (db, version) async {
-      await db.execute(_CREATE_WORD_TABLE);
-      await db.insert('word', {
-        'category_id': 1,
-        'word': '哎',
-        'pinyin': 'ai',
-        'meaning': 'なんかしらんけど'
-      });
-    }, version: 1);
+              await db.execute(_CREATE_WORD_TABLE);
+              await db.execute(_CREATE_CATEGORY_TABLE);
+              await db.execute(_CREATE_EXAMPLESENTENCE_TABLE);
+              await db.insert('word', {
+                'category_id': 1,
+                'word': '哎',
+                'pinyin': 'ai',
+                'meaning': 'なんかしらんけど'
+              });
+              await db.insert('word',
+                  {'category_id': 1, 'word': '人', 'pinyin': 'ren3', 'meaning': 'ひと'});
+              await db.insert('category', {'category_name': 'HSK1'});
+              await db.insert(
+                  'example_sentence', {'word_id': '1', 'example_sentence': "哎呀~"});
+              await db.insert(
+                  'example_sentence', {'word_id': '1', 'example_sentence': "哎test"});
+            }, version: 1);
     return database;
   }
 
   // DBを作り直したいとき
   Future<void> deleteDatabase() async {
-    final path = join(await getDatabasesPath(), 'my_database.db');
+    final path = join(await getDatabasesPath(), 'study_chinese.db');
     await databaseFactory.deleteDatabase(path);
   }
 }

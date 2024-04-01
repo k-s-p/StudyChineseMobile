@@ -15,14 +15,15 @@ class WordDetailPage extends StatefulWidget {
 }
 
 class _WordDetailPageState extends State<WordDetailPage> {
-  late Future<Word> _word;
-  List<String> sentences = ["テスト例文１", "テスト例文2"];
+  late Future<Map<String, dynamic>> _word_and_sentences;
+  List<String> exampleSentenceList = [];
+  int wordId = -1;
 
   List<Container> makeWordColumnList(String word, String pinyin) {
     List<Container> wordColumnList = [];
     var kanjiList = word.split('');
     var pinyinList = pinyin.split(' ');
-    for (int i = 0; i < pinyinList.length; i++) {
+    for(var i = 0; i < pinyinList.length; i++) {
       var wordColumn = Container(
         padding: const EdgeInsets.only(left: 1.5),
         child: Column(children: [
@@ -43,8 +44,8 @@ class _WordDetailPageState extends State<WordDetailPage> {
   @override
   void initState() {
     super.initState();
-    _word = Future(() async {
-      return WordRepository().getWordData(widget.id);
+    _word_and_sentences = Future(() async {
+      return WordRepository().getWordAndSentences(widget.id);
     });
   }
 
@@ -55,8 +56,8 @@ class _WordDetailPageState extends State<WordDetailPage> {
       appBar: AppBar(
         title: const Text('単語詳細'),
       ),
-      body: FutureBuilder<Word>(
-          future: _word,
+      body: FutureBuilder<Map<String, dynamic>>(
+          future: _word_and_sentences,
           builder: (context, snapshot) {
             // 結果取得
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -64,6 +65,12 @@ class _WordDetailPageState extends State<WordDetailPage> {
             } else if (snapshot.hasError) {
               return Text('エラー: ${snapshot.error}');
             } else {
+              Word word = snapshot.data!["word"];
+              List<ExampleSentence> sentences = snapshot.data!["sentences"];
+              if(exampleSentenceList.isEmpty){
+                wordId = word.id;
+                exampleSentenceList = sentences.map((s) => s.sentence).toList();
+              }
               return Column(
                 children: <Widget>[
                   Row(
@@ -74,13 +81,22 @@ class _WordDetailPageState extends State<WordDetailPage> {
                         icon: Icon(Icons.arrow_back_ios),
                         onPressed: () {
                           // 前の単語に移動
+                          setState(() {
+                            exampleSentenceList.clear();
+                            _word_and_sentences = WordRepository().getPreWordAndSentences(word.id, word.category.id);
+                          });
                         },
                       ),
+                      Text(word.category.categoryName, style: const TextStyle(fontSize: 40, color: Colors.blue),),
                       IconButton(
                         iconSize: 40,
                         icon: Icon(Icons.arrow_forward_ios),
                         onPressed: () {
                           // 次の単語に移動
+                          setState(() {
+                            exampleSentenceList.clear();
+                            _word_and_sentences = WordRepository().getNextWordAndSentences(word.id, word.category.id);
+                          });
                         },
                       )
                     ],
@@ -89,34 +105,34 @@ class _WordDetailPageState extends State<WordDetailPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: makeWordColumnList(
-                        snapshot.data!.word, snapshot.data!.pinyin),
+                        word.word, word.pinyin),
                   ),
                   // 意味
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    child: Text('意味: ${snapshot.data!.meaning}'),
+                    child: Text('意味: ${word.meaning}'),
                   ),
                   // 例文
                   const Text("例文"),
                   Expanded(
                       child: ListView.builder(
-                    itemCount: sentences.length,
+                    itemCount: exampleSentenceList.length,
                     itemBuilder: (context, index) {
                       return ListTile(
                         title: TextFormField(
-                          initialValue: sentences[index],
+                          initialValue: exampleSentenceList[index],
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               contentPadding: EdgeInsets.only(left: 5)),
                           onChanged: (value) {
-                            sentences[index] = value;
+                            exampleSentenceList[index] = value;
                           },
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () {
                             setState(() {
-                              sentences.removeAt(index);
+                              exampleSentenceList.removeAt(index);
                             });
                           },
                         ),
@@ -131,15 +147,16 @@ class _WordDetailPageState extends State<WordDetailPage> {
         child: const Icon(Icons.add),
         onPressed: () {
           setState(() {
-            sentences.add("");
+            exampleSentenceList.add("");
           });
         },
       ),
       bottomNavigationBar: BottomAppBar(
         child: TextButton(
           child: const Text("例文保存"),
-          onPressed: () {
+          onPressed: () async {
             // DBに保存する
+            await WordRepository().storeExampleSentences(wordId, exampleSentenceList);
 
             // snackを表示する
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

@@ -5,6 +5,7 @@ import 'package:study_chinese/utils/database_util.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初期データの作成を行う
+  await DataBaseUtil().deleteDatabase();
   final db = await DataBaseUtil().initializeDatabase();
   runApp(const MainApp());
 }

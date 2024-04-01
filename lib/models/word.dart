@@ -1,6 +1,6 @@
 class Word {
   final int id; // primaryKey
-  final int category; // hskレベルなどのカテゴリで単語を分ける
+  final Category category;
   final String word;
   final String pinyin;
   final String meaning;
@@ -15,10 +15,11 @@ class Word {
   // マップからWordオブジェクト作成
   factory Word.fromMap(Map<String, dynamic> map) => Word(
       id: map["id"],
-      category: map["category_id"],
+      category: Category(id: map["category_id"], categoryName: map["category_name"]),
       word: map["word"],
       pinyin: map["pinyin"],
-      meaning: map["meaning"]);
+      meaning: map["meaning"]
+      );
 }
 
 class Category {
@@ -31,14 +32,14 @@ class Category {
 class ExampleSentence {
   final int id;
   final int wordId;
-  final String sentence;
+  String sentence;
 
   ExampleSentence(
       {required this.id, required this.wordId, required this.sentence});
 
   // マップから例文オブジェクト作成
   factory ExampleSentence.fromMap(Map<String, dynamic> map) => ExampleSentence(
-      id: map["id"], wordId: map["wordId"], sentence: map["sentence"]);
+      id: map["id"], wordId: map["word_id"], sentence: map["example_sentence"]);
 }
 
 // 一覧表示用の単語リスト
