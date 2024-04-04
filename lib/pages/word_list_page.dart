@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:study_chinese/models/word.dart';
 import 'package:study_chinese/pages/word_detail_page.dart';
+import 'package:study_chinese/repository/category_repository.dart';
+import 'package:study_chinese/repository/word_repository.dart';
+import 'package:study_chinese/utils/text_to_speech_util.dart';
 
 final dummyData = [
   WordData(
@@ -28,14 +32,23 @@ final dummyData = [
       exampleSentences: ['あいうえおかきくけこ', 'たのしいな～']),
 ];
 
-class WordListPage extends StatelessWidget {
+class WordListPage extends StatefulWidget {
   const WordListPage({super.key});
 
-  // データベースからのデータ取得は非同期処理
-  Future<List<WordData>> fetchWords() async {
-    // TODO: データベースからデータ取得
-    return dummyData;
-  }
+  @override
+  _WordListPageState createState() => _WordListPageState();
+}
+
+class _WordListPageState extends State<WordListPage> {
+  final wordRepository = WordRepository();
+  final categoryRepository = CategoryRepository();
+  final textToSpeechUtil = TextToSpeechUtil();
+
+  List<Word> _wordList = List.empty();
+  List<Word> _searchedwordList = List.empty();
+  List<Category> _categorySelectList = List.empty();
+  int? isSelectedItem;
+  String? isSearchStr;
 
   // 単語一文字の上にピンインを置いたContainerのリストを返す
   List<Container> makeWordColumnList(String word, String pinyin) {
@@ -59,58 +72,122 @@ class WordListPage extends StatelessWidget {
     return wordColumnList;
   }
 
+  // 単語検索機能
+  List<Word> searchWordList(List<Word> wordList, String? target) {
+    if (target == null || target.isEmpty) {
+      return wordList;
+    } else {
+      return wordList.where((element) {
+        return element.word.contains(target);
+      }).toList();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // _wordList = Future(() async {
+    //   return wordRepository.getWordList(1);
+    // });
+    categoryRepository.getCategoryList().then((value) {
+      setState(() {
+        _categorySelectList = value;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('単語学習'),
       ),
-      body: FutureBuilder<List<WordData>>(
-        future: fetchWords(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('エラー: ${snapshot.error}');
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                var wordData = snapshot.data![index];
-                // リストの要素を作成
-                return Container(
-                  decoration:
-                      const BoxDecoration(border: Border(bottom: BorderSide())),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.only(left: 0.0, right: 0.0),
-                    onTap: () {
-                      // タップで詳細画面へ遷移
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: ((context) => WordDetailPage(
-                              id: wordData.id,))));
-                    },
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children:
-                          makeWordColumnList(wordData.word, wordData.pinyin),
-                    ),
-                    subtitle: Text(
-                      wordData.meaning,
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.volume_up),
-                      onPressed: () {
-                        // TODO: 音声出力機能作成予定
-                      },
-                    ),
-                  ),
-                );
-              },
+      body: Column(children: [
+        TextField(
+          decoration: InputDecoration(labelText: "検索"),
+          onSubmitted: (value) {
+            // 検索処理
+            setState(() {
+              isSearchStr = value;
+              _searchedwordList = searchWordList(_wordList, value);
+            });
+          },
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        DropdownButton<int>(
+          hint: const Text("カテゴリ選択"),
+          itemHeight: 50,
+          isDense: false,
+          isExpanded: true,
+          underline: Container(
+            height: 1,
+            color: Colors.black,
+          ),
+          items: _categorySelectList
+              .map<DropdownMenuItem<int>>((Category category) {
+            return DropdownMenuItem<int>(
+              value: category.id,
+              child: Text(category.categoryName),
             );
-          }
-        },
-      ),
+          }).toList(),
+          value: isSelectedItem,
+          onChanged: (value) {
+            // カテゴリを選択したら、DBから単語リストを取得する
+            setState(() {
+              isSelectedItem = value;
+            });
+            wordRepository.getWordList(value ?? 0).then((result) {
+              setState(() {
+                _wordList = result;
+                _searchedwordList = searchWordList(_wordList, isSearchStr);
+              });
+            });
+          },
+        ),
+        const SizedBox(
+          height: 15,
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _searchedwordList.length,
+            itemBuilder: (context, index) {
+              var wordData = _searchedwordList[index];
+              // リストの要素を作成
+              return Container(
+                decoration:
+                    const BoxDecoration(border: Border(bottom: BorderSide())),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0),
+                  onTap: () {
+                    // タップで詳細画面へ遷移
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: ((context) => WordDetailPage(
+                              id: wordData.id,
+                            ))));
+                  },
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children:
+                        makeWordColumnList(wordData.word, wordData.pinyin),
+                  ),
+                  subtitle: Text(
+                    wordData.meaning,
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.volume_up),
+                    onPressed: () {
+                      // TODO: 音声出力機能
+                      textToSpeechUtil.speak(wordData.word);
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
     );
   }
 }

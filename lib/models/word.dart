@@ -27,6 +27,9 @@ class Category {
   final String categoryName;
 
   Category({required this.id, required this.categoryName});
+
+  // マップからCategoryオブジェクトを作成
+  factory Category.fromMap(Map<String, dynamic> map) => Category(id: map["id"], categoryName: map["category_name"]);
 }
 
 class ExampleSentence {

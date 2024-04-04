@@ -4,9 +4,6 @@ import 'package:study_chinese/repository/word_repository.dart';
 
 class WordDetailPage extends StatefulWidget {
   final int id;
-  // final String pinyin;
-  // final String word;
-  // final String meaning;
 
   WordDetailPage({required this.id});
 
@@ -16,14 +13,16 @@ class WordDetailPage extends StatefulWidget {
 
 class _WordDetailPageState extends State<WordDetailPage> {
   late Future<Map<String, dynamic>> _word_and_sentences;
+  final wordRepository = WordRepository();
   List<String> exampleSentenceList = [];
   int wordId = -1;
+  String studyWord = "";
 
   List<Container> makeWordColumnList(String word, String pinyin) {
     List<Container> wordColumnList = [];
     var kanjiList = word.split('');
     var pinyinList = pinyin.split(' ');
-    for(var i = 0; i < pinyinList.length; i++) {
+    for (var i = 0; i < pinyinList.length; i++) {
       var wordColumn = Container(
         padding: const EdgeInsets.only(left: 1.5),
         child: Column(children: [
@@ -45,10 +44,9 @@ class _WordDetailPageState extends State<WordDetailPage> {
   void initState() {
     super.initState();
     _word_and_sentences = Future(() async {
-      return WordRepository().getWordAndSentences(widget.id);
+      return wordRepository.getWordAndSentences(widget.id);
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +65,9 @@ class _WordDetailPageState extends State<WordDetailPage> {
             } else {
               Word word = snapshot.data!["word"];
               List<ExampleSentence> sentences = snapshot.data!["sentences"];
-              if(exampleSentenceList.isEmpty){
+              if (wordId == -1) {
                 wordId = word.id;
+                studyWord = word.word;
                 exampleSentenceList = sentences.map((s) => s.sentence).toList();
               }
               return Column(
@@ -83,11 +82,19 @@ class _WordDetailPageState extends State<WordDetailPage> {
                           // 前の単語に移動
                           setState(() {
                             exampleSentenceList.clear();
-                            _word_and_sentences = WordRepository().getPreWordAndSentences(word.id, word.category.id);
+                            wordId = -1;
+                            studyWord = "";
+                            _word_and_sentences =
+                                wordRepository.getPreWordAndSentences(
+                                    word.id, word.category.id);
                           });
                         },
                       ),
-                      Text(word.category.categoryName, style: const TextStyle(fontSize: 40, color: Colors.blue),),
+                      Text(
+                        word.category.categoryName,
+                        style:
+                            const TextStyle(fontSize: 40, color: Colors.blue),
+                      ),
                       IconButton(
                         iconSize: 40,
                         icon: Icon(Icons.arrow_forward_ios),
@@ -95,7 +102,11 @@ class _WordDetailPageState extends State<WordDetailPage> {
                           // 次の単語に移動
                           setState(() {
                             exampleSentenceList.clear();
-                            _word_and_sentences = WordRepository().getNextWordAndSentences(word.id, word.category.id);
+                            wordId = -1;
+                            studyWord = "";
+                            _word_and_sentences =
+                                wordRepository.getNextWordAndSentences(
+                                    word.id, word.category.id);
                           });
                         },
                       )
@@ -104,65 +115,87 @@ class _WordDetailPageState extends State<WordDetailPage> {
                   // 単語
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: makeWordColumnList(
-                        word.word, word.pinyin),
+                    children: makeWordColumnList(word.word, word.pinyin),
                   ),
                   // 意味
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                    padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
                     child: Text('意味: ${word.meaning}'),
                   ),
                   // 例文
-                  const Text("例文"),
+                  const Text(
+                    "例文",
+                  ),
                   Expanded(
                       child: ListView.builder(
-                    itemCount: exampleSentenceList.length,
+                    itemCount: exampleSentenceList.length + 1,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: TextFormField(
-                          initialValue: exampleSentenceList[index],
-                          decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.only(left: 5)),
-                          onChanged: (value) {
-                            exampleSentenceList[index] = value;
-                          },
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
+                      if (index == exampleSentenceList.length) {
+                        return ListTile(
+                            title: IconButton(
+                          icon: Icon(Icons.add_circle),
+                          iconSize: 30,
+                          color: Colors.green,
                           onPressed: () {
                             setState(() {
-                              exampleSentenceList.removeAt(index);
+                              exampleSentenceList.add("");
                             });
                           },
-                        ),
-                      );
+                        ));
+                      } else {
+                        return ListTile(
+                          title: TextField(
+                            controller: TextEditingController(
+                                text: exampleSentenceList[index]),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.only(left: 5)),
+                            style: TextStyle(
+                              color:
+                                  exampleSentenceList[index].contains(word.word)
+                                      ? Colors.black
+                                      : Colors.red,
+                            ),
+                            onSubmitted: (value) {
+                              setState(() {
+                                exampleSentenceList[index] = value;
+                              });
+                            },
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              setState(() {
+                                exampleSentenceList.removeAt(index);
+                              });
+                            },
+                          ),
+                        );
+                      }
                     },
                   )),
                 ],
               );
             }
           }),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          setState(() {
-            exampleSentenceList.add("");
-          });
-        },
-      ),
       bottomNavigationBar: BottomAppBar(
         child: TextButton(
           child: const Text("例文保存"),
           onPressed: () async {
             // DBに保存する
-            await WordRepository().storeExampleSentences(wordId, exampleSentenceList);
-
-            // snackを表示する
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("例文を保存しました"),
-              duration: Duration(seconds: 2),
-            ));
+            if (await wordRepository.storeExampleSentences(
+                wordId, exampleSentenceList, studyWord)) {
+              // snackを表示する
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("例文を保存しました"),
+                duration: Duration(seconds: 2),
+              ));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("例文の保存に失敗しました"),
+                duration: Duration(seconds: 2),
+              ));
+            }
           },
         ),
       ),
