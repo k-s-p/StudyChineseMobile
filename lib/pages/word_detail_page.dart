@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:study_chinese/models/word.dart';
 import 'package:study_chinese/repository/word_repository.dart';
+import 'package:study_chinese/utils/text_to_speech_util.dart';
 
 class WordDetailPage extends StatefulWidget {
   final int id;
@@ -14,6 +16,7 @@ class WordDetailPage extends StatefulWidget {
 class _WordDetailPageState extends State<WordDetailPage> {
   late Future<Map<String, dynamic>> _word_and_sentences;
   final wordRepository = WordRepository();
+  final textToSpeechUtil = TextToSpeechUtil();
   List<String> exampleSentenceList = [];
   int wordId = -1;
   String studyWord = "";
@@ -113,9 +116,14 @@ class _WordDetailPageState extends State<WordDetailPage> {
                     ],
                   ),
                   // 単語
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: makeWordColumnList(word.word, word.pinyin),
+                  GestureDetector(
+                    onTap: () {
+                      textToSpeechUtil.speak(word.word);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: makeWordColumnList(word.word, word.pinyin),
+                    ),
                   ),
                   // 意味
                   Padding(

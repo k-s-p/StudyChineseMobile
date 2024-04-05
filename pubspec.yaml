@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   sqflite: ^2.3.2
   path:
-  flutter_tts: ^4.0.2
+  flutter_tts: ^3.8.5
 
 dev_dependencies:
   flutter_test:

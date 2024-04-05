@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 class TextToSpeechUtil {
@@ -26,13 +25,13 @@ class TextToSpeechUtil {
     // }else{
     //   print("失敗");
     // }
-    flutterTts.getVoices.then((value){
-      for (var element in value) {
-        if(element["locale"] == "zh-CN"){
-        print(element);
+    // flutterTts.getVoices.then((value){
+    //   for (var element in value) {
+    //     if(element["locale"] == "zh-CN"){
+    //     print(element);
 
-        }
-      }
-    });
+    //     }
+    //   }
+    // });
   }
 }
