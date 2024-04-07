@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:study_chinese/utils/csv_import_util.dart';
 
 class DataBaseUtil {
   final _CREATE_WORD_TABLE =
@@ -17,19 +18,39 @@ class DataBaseUtil {
               await db.execute(_CREATE_WORD_TABLE);
               await db.execute(_CREATE_CATEGORY_TABLE);
               await db.execute(_CREATE_EXAMPLESENTENCE_TABLE);
-              await db.insert('word', {
-                'category_id': 1,
-                'word': '哎',
-                'pinyin': 'ai',
-                'meaning': 'なんかしらんけど'
-              });
-              await db.insert('word',
-                  {'category_id': 1, 'word': '人', 'pinyin': 'ren3', 'meaning': 'ひと'});
-              await db.insert('category', {'category_name': 'HSK1'});
-              await db.insert(
-                  'example_sentence', {'word_id': '1', 'example_sentence': "哎呀~"});
-              await db.insert(
-                  'example_sentence', {'word_id': '1', 'example_sentence': "哎test"});
+
+              final dataList = await CsvImportUtil().getSqliteInitDataCsv("assets/sqlite_initdata.csv");
+
+              int currentCutegoryId = 0;
+              for (final row in dataList){
+                await db.insert('word', {
+                  'id': row.id,
+                  'category_id': row.category.id,
+                  'word': row.word,
+                  'pinyin': row.pinyin,
+                  'meaning': row.meaning
+                });
+                if (currentCutegoryId != row.category.id){
+                  currentCutegoryId = row.category.id;
+                  await db.insert('category', {
+                    'id': row.category.id,
+                    'category_name': row.category.categoryName
+                  });
+                }
+              }
+              // await db.insert('word', {
+              //   'category_id': 1,
+              //   'word': '哎',
+              //   'pinyin': 'ai',
+              //   'meaning': 'なんかしらんけど'
+              // });
+              // await db.insert('word',
+              //     {'category_id': 1, 'word': '人', 'pinyin': 'ren3', 'meaning': 'ひと'});
+              // await db.insert('category', {'category_name': 'HSK1'});
+              // await db.insert(
+              //     'example_sentence', {'word_id': '1', 'example_sentence': "哎呀~"});
+              // await db.insert(
+              //     'example_sentence', {'word_id': '1', 'example_sentence': "哎test"});
             }, version: 1);
     return database;
   }
@@ -38,5 +59,5 @@ class DataBaseUtil {
   Future<void> deleteDatabase() async {
     final path = join(await getDatabasesPath(), 'study_chinese.db');
     await databaseFactory.deleteDatabase(path);
-  }
+  }  
 }

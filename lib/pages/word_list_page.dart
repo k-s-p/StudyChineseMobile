@@ -50,6 +50,48 @@ class _WordListPageState extends State<WordListPage> {
   int? isSelectedItem;
   String? isSearchStr;
 
+  // 簡易表記のピンインを声調符号付きに変換する
+  String convertPinyinToneMarks(String s) {
+    s = s.toLowerCase();
+    s = s.replaceAll('v', 'ü');
+    List<String> pinyinList = s.split(' ');
+    for (int i = 0; i < pinyinList.length; i++) {
+      String res = '';
+      String seicho = pinyinList[i][pinyinList[i].length - 1];
+      String pinyin = pinyinList[i].substring(0, pinyinList[i].length - 1);
+      if (!['1', '2', '3', '4', '5'].contains(seicho)) {
+        seicho = '';
+        pinyin = pinyinList[i];
+      }
+
+      if (pinyin.contains('a')) {
+        res = pinyin.replaceAll('a', 'a$seicho');
+      } else if (pinyin.contains('e')) {
+        res = pinyin.replaceAll('e', 'e$seicho');
+      } else if (pinyin.contains('o')) {
+        res = pinyin.replaceAll('o', 'o$seicho');
+      } else if (pinyin.contains('iu')) {
+        res = pinyin.replaceAll('iu', 'iu$seicho');
+      } else if (pinyin.contains('ui')) {
+        res = pinyin.replaceAll('ui', 'ui$seicho');
+      } else if (pinyin.contains('i')) {
+        res = pinyin.replaceAll('i', 'i$seicho');
+      } else {
+        res = pinyin.replaceAll('u', 'u$seicho');
+      }
+
+      pinyinList[i] = res;
+    }
+
+    s = pinyinList.join(' ');
+    s = s.replaceAll('1', '̄');
+    s = s.replaceAll('2', '́');
+    s = s.replaceAll('3', '̌');
+    s = s.replaceAll('4', '̀');
+    s = s.replaceAll('5', '');
+    return s;
+  }
+
   // 単語一文字の上にピンインを置いたContainerのリストを返す
   List<Container> makeWordColumnList(String word, String pinyin) {
     List<Container> wordColumnList = [];
@@ -117,6 +159,7 @@ class _WordListPageState extends State<WordListPage> {
           height: 10,
         ),
         DropdownButton<int>(
+          padding: EdgeInsets.only(left: 2.5),
           hint: const Text("カテゴリ選択"),
           itemHeight: 50,
           isDense: false,
@@ -156,6 +199,7 @@ class _WordListPageState extends State<WordListPage> {
               var wordData = _searchedwordList[index];
               // リストの要素を作成
               return Container(
+                padding: EdgeInsets.only(left: 2.5),
                 decoration:
                     const BoxDecoration(border: Border(bottom: BorderSide())),
                 child: ListTile(
@@ -170,7 +214,7 @@ class _WordListPageState extends State<WordListPage> {
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children:
-                        makeWordColumnList(wordData.word, wordData.pinyin),
+                        makeWordColumnList(wordData.word, convertPinyinToneMarks(wordData.pinyin)),
                   ),
                   subtitle: Text(
                     wordData.meaning,
@@ -178,7 +222,7 @@ class _WordListPageState extends State<WordListPage> {
                   trailing: IconButton(
                     icon: const Icon(Icons.volume_up),
                     onPressed: () {
-                      // TODO: 音声出力機能
+                      // 音声出力機能
                       textToSpeechUtil.speak(wordData.word);
                     },
                   ),

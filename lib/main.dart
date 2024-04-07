@@ -6,7 +6,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初期データの作成を行う
   await DataBaseUtil().deleteDatabase();
-  final db = await DataBaseUtil().initializeDatabase();
+  await DataBaseUtil().initializeDatabase();
   runApp(const MainApp());
 }
 

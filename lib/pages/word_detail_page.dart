@@ -21,6 +21,47 @@ class _WordDetailPageState extends State<WordDetailPage> {
   int wordId = -1;
   String studyWord = "";
 
+  String convertPinyinToneMarks(String s) {
+    s = s.toLowerCase();
+    s = s.replaceAll('v', 'ü');
+    List<String> pinyinList = s.split(' ');
+    for (int i = 0; i < pinyinList.length; i++) {
+      String res = '';
+      String seicho = pinyinList[i][pinyinList[i].length - 1];
+      String pinyin = pinyinList[i].substring(0, pinyinList[i].length - 1);
+      if (!['1', '2', '3', '4', '5'].contains(seicho)) {
+        seicho = '';
+        pinyin = pinyinList[i];
+      }
+
+      if (pinyin.contains('a')) {
+        res = pinyin.replaceAll('a', 'a$seicho');
+      } else if (pinyin.contains('e')) {
+        res = pinyin.replaceAll('e', 'e$seicho');
+      } else if (pinyin.contains('o')) {
+        res = pinyin.replaceAll('o', 'o$seicho');
+      } else if (pinyin.contains('iu')) {
+        res = pinyin.replaceAll('iu', 'iu$seicho');
+      } else if (pinyin.contains('ui')) {
+        res = pinyin.replaceAll('ui', 'ui$seicho');
+      } else if (pinyin.contains('i')) {
+        res = pinyin.replaceAll('i', 'i$seicho');
+      } else {
+        res = pinyin.replaceAll('u', 'u$seicho');
+      }
+
+      pinyinList[i] = res;
+    }
+
+    s = pinyinList.join(' ');
+    s = s.replaceAll('1', '̄');
+    s = s.replaceAll('2', '́');
+    s = s.replaceAll('3', '̌');
+    s = s.replaceAll('4', '̀');
+    s = s.replaceAll('5', '');
+    return s;
+  }
+
   List<Container> makeWordColumnList(String word, String pinyin) {
     List<Container> wordColumnList = [];
     var kanjiList = word.split('');
@@ -122,13 +163,13 @@ class _WordDetailPageState extends State<WordDetailPage> {
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: makeWordColumnList(word.word, word.pinyin),
+                      children: makeWordColumnList(word.word, convertPinyinToneMarks(word.pinyin)),
                     ),
                   ),
                   // 意味
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
-                    child: Text('意味: ${word.meaning}'),
+                    padding: const EdgeInsets.only(top: 15.0, bottom: 20.0),
+                    child: Text(word.meaning, style: TextStyle(fontSize: 20),),
                   ),
                   // 例文
                   const Text(
