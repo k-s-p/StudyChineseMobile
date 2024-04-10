@@ -217,7 +217,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
                               setState(() {
                                 exampleSentenceList.removeAt(index);
                               });
-                            },
+                            }
                           ),
                         );
                       }

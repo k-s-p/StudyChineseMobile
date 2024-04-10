@@ -12,14 +12,15 @@ class TextToSpeechUtil {
     // await flutterTts.setVoice({"name": "cmn-cn-x-ccd-network", "locale": "zh-CN"});
     // await flutterTts.setVoice({"name": "zh-CN-language", "locale": "zh-CN"});
     // await flutterTts.setVoice({"name": "cmn-cn-x-ccc-local", "locale": "zh-CN"});
-    await flutterTts.setVoice({"name": "cmn-cn-x-ccc-network", "locale": "zh-CN"}); // 結構いい
+    // await flutterTts.setVoice({"name": "cmn-cn-x-ccc-network", "locale": "zh-CN"}); // 結構いい
     // await flutterTts.setVoice({"name": "cmn-cn-x-ccd-local", "locale": "zh-CN"});
-    // await flutterTts.setVoice({"name": "cmn-cn-x-cce-network", "locale": "zh-CN"}); // 結構いい
+    await flutterTts.setVoice({"name": "cmn-cn-x-cce-network", "locale": "zh-CN"}); // 結構いい
     // await flutterTts.setVoice({"name": "cmn-cn-x-ssa-network", "locale": "zh-CN"});
     await flutterTts.setSpeechRate(0.5);
     await flutterTts.setVolume(1.0);
     await flutterTts.setPitch(1.0);
     await flutterTts.speak(text);
+    // var result = await flutterTts.speak(text);
     // if (result == 1){
     //   print("成功");
     // }else{

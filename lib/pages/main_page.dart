@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:study_chinese/pages/question_main_page.dart';
 import 'package:study_chinese/pages/word_list_page.dart';
 
 class MainPage extends StatelessWidget {
@@ -36,7 +37,48 @@ class MainPage extends StatelessWidget {
               child: ElevatedButton(
                   child: const Text('テスト', style: TextStyle(fontSize: 20)),
                   onPressed: () {
-                    // TODO テスト機能への遷移,
+                    // テストを選択させる
+                    showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('どのテストに挑戦しますか？'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ListTile(
+                    title: const Text('意味四択'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QuestionMainPage(questionType: "意味四択")));
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('単語四択'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QuestionMainPage(questionType: "単語四択")));
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('ピンイン入力'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QuestionMainPage(questionType: "ピンイン入力",)));
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('例文穴埋め'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QuestionMainPage(questionType: "例文穴埋め",)));
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
                   }),
             ),
             Row(
