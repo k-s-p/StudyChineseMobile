@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:study_chinese/models/word.dart';
+import 'package:study_chinese/pages/question_answer_page.dart';
 import 'package:study_chinese/repository/category_repository.dart';
 
 class QuestionMainPage extends StatefulWidget {
@@ -162,7 +163,7 @@ class _QuestionMainPageState extends State<QuestionMainPage> {
             ElevatedButton(
               child: const Text("スタート！！"),
               onPressed: () {
-                //
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => QuestionAnswerPage(questionType: "4択テスト", isCategory: isCategory!, isQuestionNum: isQuestionNum, isHani: isHani,)));
               },
             )
           ],

@@ -14,7 +14,7 @@ class WordDetailPage extends StatefulWidget {
 }
 
 class _WordDetailPageState extends State<WordDetailPage> {
-  late Future<Map<String, dynamic>> _word_and_sentences;
+  late Future<Map<String, dynamic>> _wordAndSentences;
   final wordRepository = WordRepository();
   final textToSpeechUtil = TextToSpeechUtil();
   List<String> exampleSentenceList = [];
@@ -87,7 +87,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
   @override
   void initState() {
     super.initState();
-    _word_and_sentences = Future(() async {
+    _wordAndSentences = Future(() async {
       return wordRepository.getWordAndSentences(widget.id);
     });
   }
@@ -99,7 +99,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
         title: const Text('単語詳細'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-          future: _word_and_sentences,
+          future: _wordAndSentences,
           builder: (context, snapshot) {
             // 結果取得
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -128,7 +128,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
                             exampleSentenceList.clear();
                             wordId = -1;
                             studyWord = "";
-                            _word_and_sentences =
+                            _wordAndSentences =
                                 wordRepository.getPreWordAndSentences(
                                     word.id, word.category.id);
                           });
@@ -148,7 +148,7 @@ class _WordDetailPageState extends State<WordDetailPage> {
                             exampleSentenceList.clear();
                             wordId = -1;
                             studyWord = "";
-                            _word_and_sentences =
+                            _wordAndSentences =
                                 wordRepository.getNextWordAndSentences(
                                     word.id, word.category.id);
                           });

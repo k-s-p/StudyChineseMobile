@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:study_chinese/models/word.dart';
 import 'package:study_chinese/utils/database_util.dart';
 
@@ -194,5 +196,46 @@ class WordRepository {
 
     return List.generate(
         data.length, (index) => Word.fromMap(data[index]));
+  }
+
+  // 問題として出力する単語とその回答候補を取得する
+  Future<List<List<Word>>> getFourSelectQuestionMap(int categoryId, int questionNum) async {
+    final db = await DataBaseUtil().initializeDatabase();
+
+    List<Map<String, dynamic>> data = await db.rawQuery("""
+          select 
+            word.id, 
+            word, 
+            pinyin, 
+            meaning, 
+            category_id, 
+            category_name 
+          from 
+              word 
+          inner join 
+              category 
+          on category.id = word.category_id 
+          where
+            word.category_id = $categoryId 
+          order by word.id
+          """);
+
+    List<Word> wordList = List.generate(data.length, (index) => Word.fromMap(data[index]));
+
+    // questionNum数の問題単語と、その4択選択肢3つを用意する
+    List<List<Word>> questionList = <List<Word>>[];
+    var random = Random();
+    for (var word in wordList) {
+      if(questionNum == 0) break;
+      questionList.add([word]);
+      while(questionList.last.length < 4){
+        var temp = wordList[random.nextInt(wordList.length)];
+        if(questionList.last.contains(temp)) continue;
+        questionList.last.add(temp);
+      }
+      questionNum--;
+    }
+
+    return questionList;
   }
 }
